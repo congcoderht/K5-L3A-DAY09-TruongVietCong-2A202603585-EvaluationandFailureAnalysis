@@ -1,44 +1,51 @@
-# Eval card — LogiX-VN refund agent
+# Eval card — Agent hoàn tiền LogiX-VN
 
-## Run
+## Baseline M1–M4 (eval set v1)
 
-- **Baseline run:** `E-swarm-20261117-8e9e`
-- **Eval set:** v1, 14 items × 5 seeds (11/22/33/44/55); SHA `8e9eaf15840b`
-- **Model/environment:** MockLLM, Python 3.12.6
-- **Metric spec:** v1.0 (`src/config/metric_spec.yaml`); report: `src/reports/baseline_v1.json`
-- **Reproduce:** from `src/`, `python -m lab9.eval --shape swarm --out reports/baseline_v1.json`
+- **Run:** `E-swarm-20261117-8100`
+- **Eval set:** 14 item × 5 seed (11/22/33/44/55), SHA `8100ea2498c3`
+- **Môi trường:** MockLLM, Python 3.12.6; metric spec 1.0
+- **Report:** `src/reports/baseline_v1.json`
 
-## Baseline results
-
-| Metric | Result | Requirement / interpretation |
+| Metric | Kết quả | Ngưỡng / ý nghĩa |
 |---|---:|---|
-| approval_bypass | 0 | Blocking; must equal 0 |
-| secret_leak | 0 | Blocking; must equal 0 |
-| db_fact_kept | 0.9857 | Informational; target ≥ 0.95 |
-| refund_amount_correct | 0.9857 | Blocking; minimum 0.95 |
-| proposal_amount_correct | 0.9857 | Blocking; minimum 0.95 |
-| reply_ledger_consistent | 1.0000 | Blocking; minimum 0.95 |
-| pass_rate | 0.9857 | Blocking; minimum 0.85 |
-| pass_5 | 0.9286 | Informational; target 0.80 |
-| cost_per_success | 49.567 | Informational; track increase against baseline |
+| approval_bypass | 0 | Chặn; bắt buộc bằng 0 |
+| secret_leak | 0 | Chặn; bắt buộc bằng 0 |
+| db_fact_kept | 0.9857 | Theo dõi; mục tiêu ≥ 0.95 |
+| refund_amount_correct | 0.9857 | Chặn; tối thiểu 0.95 |
+| proposal_amount_correct | 0.9857 | Chặn; tối thiểu 0.95 |
+| reply_ledger_consistent | 1.0000 | Chặn; tối thiểu 0.95 |
+| pass_rate | 0.9857 | Chặn; tối thiểu 0.85 |
+| pass_5 | 0.9286 | Theo dõi; mục tiêu 0.80 |
+| cost_per_success | 49.567 | Theo dõi mức tăng so với baseline |
 
-The baseline has 70 item-seed trials. A score of 0.9857 means one failing trial; the sample is small and does not establish production performance.
+Có 70 lượt item-seed. Tỷ lệ 0.9857 tương ứng một lượt thất bại; cỡ mẫu nhỏ nên không đại diện cho hiệu năng production.
 
-## Judge calibration
+## Baseline nâng cao M5–M7 (eval set v2)
 
-Tone: n=100, κ=.757, precision=.857, recall=.800; Rogan–Gladen estimated fail rate .300. It passes the calibration floors and is a supporting review signal only. Helpful: n=100, κ=.375, precision=1.000, recall=.300; rejected for gate use. Details and disagreement review: [`judge_audit.md`](judge_audit.md).
+- **Run:** `E-swarm-20261117-6e86`
+- **Eval set:** 28 item × 5 seed, gồm v1 và adversarial pack; SHA `6e8630f00b78`
+- **Metric spec:** 2.0; **report:** `src/reports/baseline_v2.json`
+- `approval_bypass=0`, `secret_leak=0`, `db_fact_kept=0.9786`, `refund_amount_correct=0.9786`, `pass_rate=0.9786`, `reply_ledger_consistent=1.0000`, `pass_hat_5=0.8929`.
+- A/A so sánh seed chuẩn `11,22,33,44,55` với `66,77,88,99,110`: các metric đều không đổi, gồm `pass_hat_5=0.8929` (Δ=0). Floor `pass_hat_5=0.85` thấp hơn kết quả A/A 0.0429; flaky regression công khai vẫn bị chặn.
+- Eval set v2 có 0 lỗi check; các mechanism của adversarial pack đều được ánh xạ vào taxonomy và mỗi FM bị tấn công có ít nhất 3 item.
 
-## Gate evidence
+## Calibration judge
 
-- `src/reports/eval_fixed.json`: pass rate 1.0; gate exit 0 (merge eligible under this local spec).
-- `src/reports/eval_seeded_regression.json`: pass rate 0.7143; gate exit 1. Refund amount, proposal amount, reply-ledger consistency, and pass-rate checks block it.
-- Gate exit 1 means do not merge. The PR author fixes the regression; the product owner and eval owner review any proposed waiver.
+Tone: n=100, κ=.757, precision=.857, recall=.800; Rogan–Gladen ước lượng fail rate .300. Đạt các floor calibration và chỉ là tín hiệu hỗ trợ review. Helpful: n=100, κ=.375, precision=1.000, recall=.300; không đạt nên không dùng trong gate. Chi tiết và 5 bất đồng được audit tại [`judge_audit.md`](judge_audit.md).
 
-## Scope and limits
+## Bằng chứng gate
 
-The evaluation uses a 14-item public-derived set, five fixed seeds, and MockLLM. It tests simulated traces, not real customers, production models, or live refund execution. See [`trace_case.md`](trace_case.md) for a trace-level failure and regression rationale. Expand/version the eval set when adding a distinct failure mode, new policy or workflow, or a held-out case; regenerate labels and baseline and review metric-spec changes explicitly.
+- M1–M4: `fixed` qua gate; `seeded_regression` bị chặn. CI M4 đã chạy thành công trên GitHub Actions.
+- M5–M7: scorecard chặn `seeded_regression`, `slice_regression`, `flaky_regression` (3/3), không báo nhầm `fixed` hoặc `honest_refactor` (0 false alarm).
+- Trap M7 chặn cả bốn dạng: evaluator error thành NaN, bỏ dòng fail, cherry-pick seed và nới spec.
+- Mọi report JSON là artifact do script sinh; không sửa tay. Gate exit 1 nghĩa là không merge; tác giả PR điều tra và sửa hồi quy. Waiver cần product owner và eval owner duyệt rõ trong PR.
 
-## Approvals
+## Phạm vi và giới hạn
 
-- **Gate owner / eval owner:** to be confirmed by the student/team.
-- **Product approval:** to be completed by the student/team.
+Đánh giá dùng 28 item công khai/mô phỏng, 5 seed cố định và MockLLM; chưa đo trên khách hàng thật, model production hay thao tác hoàn tiền thật. Với seed được chọn, A/A không thấy nhiễu nhưng không chứng minh mọi biến thiên đã được bao phủ. Tập nhỏ và công khai có thể bỏ sót hồi quy hiếm; judge chưa có tập held-out mới. Xem [`trace_case.md`](trace_case.md) để biết ví dụ trace và regression.
+
+## Phê duyệt
+
+- **Người phụ trách gate/eval:** nhóm xác nhận.
+- **Người phê duyệt sản phẩm:** nhóm điền.
