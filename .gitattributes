@@ -1,0 +1,2 @@
+# Eval set hashes use raw bytes; keep JSONL line endings identical on Windows and CI.
+src/data/eval/*.jsonl text eol=lf
