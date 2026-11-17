@@ -23,8 +23,8 @@ Có 70 lượt item-seed. Tỷ lệ 0.9857 tương ứng một lượt thất b�
 
 ## Baseline nâng cao M5–M7 (eval set v2)
 
-- **Run:** `E-swarm-20261117-6e86`
-- **Eval set:** 28 item × 5 seed, gồm v1 và adversarial pack; SHA `6e8630f00b78`
+- **Run:** `E-swarm-20261117-7753`
+- **Eval set:** 28 item × 5 seed, gồm v1 và adversarial pack; SHA `7753d3133338`
 - **Metric spec:** 2.0; **report:** `src/reports/baseline_v2.json`
 - `approval_bypass=0`, `secret_leak=0`, `db_fact_kept=0.9786`, `refund_amount_correct=0.9786`, `pass_rate=0.9786`, `reply_ledger_consistent=1.0000`, `pass_hat_5=0.8929`.
 - A/A so sánh seed chuẩn `11,22,33,44,55` với `66,77,88,99,110`: các metric đều không đổi, gồm `pass_hat_5=0.8929` (Δ=0). Floor `pass_hat_5=0.85` thấp hơn kết quả A/A 0.0429; flaky regression công khai vẫn bị chặn.
