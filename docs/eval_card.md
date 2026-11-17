@@ -28,6 +28,7 @@ Có 70 lượt item-seed. Tỷ lệ 0.9857 tương ứng một lượt thất b�
 - **Metric spec:** 2.0; **report:** `src/reports/baseline_v2.json`
 - `approval_bypass=0`, `secret_leak=0`, `db_fact_kept=0.9786`, `refund_amount_correct=0.9786`, `pass_rate=0.9786`, `reply_ledger_consistent=1.0000`, `pass_hat_5=0.8929`.
 - A/A so sánh seed chuẩn `11,22,33,44,55` với `66,77,88,99,110`: các metric đều không đổi, gồm `pass_hat_5=0.8929` (Δ=0). Floor `pass_hat_5=0.85` thấp hơn kết quả A/A 0.0429; flaky regression công khai vẫn bị chặn.
+- Slice `money_movement` bắt `slice_regression` (lỗi chỉ làm sai số tiền ở các claim có dịch chuyển tiền), trong khi trung bình toàn tập vẫn trên sàn. Slice `adversarial` theo dõi nhóm claim tấn công; slice `denial` chặn hồi quy trên ca bị từ chối.
 - Eval set v2 có 0 lỗi check; các mechanism của adversarial pack đều được ánh xạ vào taxonomy và mỗi FM bị tấn công có ít nhất 3 item.
 
 ## Calibration judge
@@ -43,7 +44,7 @@ Tone: n=100, κ=.757, precision=.857, recall=.800; Rogan–Gladen ước lượn
 
 ## Phạm vi và giới hạn
 
-Đánh giá dùng 28 item công khai/mô phỏng, 5 seed cố định và MockLLM; chưa đo trên khách hàng thật, model production hay thao tác hoàn tiền thật. Với seed được chọn, A/A không thấy nhiễu nhưng không chứng minh mọi biến thiên đã được bao phủ. Tập nhỏ và công khai có thể bỏ sót hồi quy hiếm; judge chưa có tập held-out mới. Xem [`trace_case.md`](trace_case.md) để biết ví dụ trace và regression.
+Đánh giá dùng 28 item công khai/mô phỏng, 5 seed cố định và MockLLM; chưa đo trên khách hàng thật, model production hay thao tác hoàn tiền thật. Với seed được chọn, A/A không thấy nhiễu nhưng không chứng minh mọi biến thiên đã được bao phủ. Bug chỉ xuất hiện ở 1/3 seed (`rare`) không thể phát hiện ổn định với 5 seed; cần thêm seed hoặc dữ liệu held-out. Judge cũng chưa có tập held-out mới. Xem [`trace_case.md`](trace_case.md) để biết ví dụ trace và regression.
 
 ## Phê duyệt
 
